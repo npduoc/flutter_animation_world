@@ -7,21 +7,11 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Flutter Demo',
       theme: ThemeData(
-        // This is the theme of your application.
-        //
-        // Try running your application with "flutter run". You'll see the
-        // application has a blue toolbar. Then, without quitting the app, try
-        // changing the primarySwatch below to Colors.green and then invoke
-        // "hot reload" (press "r" in the console where you ran "flutter run",
-        // or simply save your changes to "hot reload" in a Flutter IDE).
-        // Notice that the counter didn't reset back to zero; the application
-        // is not restarted.
         primarySwatch: Colors.blue,
       ),
       home: const MyHomePage(title: 'Flutter Demo Home Page'),
@@ -38,54 +28,117 @@ class MyHomePage extends StatefulWidget {
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
+class _MyHomePageState extends State<MyHomePage>
+    with SingleTickerProviderStateMixin {
+  var dropDownList = [
+    'bounceIn',
+    'flash',
+    'pulse',
+    'rubberBand',
+    'shakex',
+    'shakey'
+  ];
+  late String dropdownValue;
+  late AnimationController _animationController;
+  double _scale = 1;
+  final durationBounce = const Duration(milliseconds: 200);
 
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
+  void _onPressed() {
+    print('onPressed');
+    // if (dropdownValue == dropDownList[0]) {
+      _animationController.forward();
+      Future.delayed(durationBounce, () {
+        _animationController.reverse();
+      });
+    // }
+  }
+
+  @override
+  void initState() {
+    dropdownValue = dropDownList[0];
+    _animationController = AnimationController(
+        vsync: this,
+        lowerBound: 0.0,
+        upperBound: 0.2,
+        duration: durationBounce)
+      ..addListener(() {
+        setState(() {
+
+        });
+        if (_animationController.isCompleted) {
+          _animationController.repeat();
+        }
+      });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    _scale = 1 - _animationController.value;
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.title),
       ),
       body: Center(
         child: Column(
-          // Column is also a layout widget. It takes a list of children and
-          // arranges them vertically. By default, it sizes itself to fit its
-          // children horizontally, and tries to be as tall as its parent.
-          //
-          // Invoke "debug painting" (press "p" in the console, choose the
-          // "Toggle Debug Paint" action from the Flutter Inspector in Android
-          // Studio, or the "Toggle Debug Paint" command in Visual Studio Code)
-          // to see the wireframe for each widget.
-          //
-          // Column has various properties to control how it sizes itself and
-          // how it positions its children. Here we use mainAxisAlignment to
-          // center the children vertically; the main axis here is the vertical
-          // axis because Columns are vertical (the cross axis would be
-          // horizontal).
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
+            GestureDetector(
+              onTap: _onPressed,
+              child: Transform.scale(
+                scale: _scale,
+                child: const Text(
+                  'ANIMATION',
+                  style: TextStyle(
+                      color: Colors.blueAccent,
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
+            const SizedBox(
+              height: 20,
             ),
+            _dropDown()
           ],
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
+        onPressed: _onPressed,
         tooltip: 'Increment',
-        child: const Icon(Icons.add),
+        child: const Icon(Icons.circle),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+
+  Widget _dropDown() {
+    return DropdownButton<String>(
+      value: dropdownValue,
+      icon: const Icon(Icons.arrow_downward),
+      elevation: 16,
+      style: const TextStyle(color: Colors.deepPurple),
+      underline: Container(
+        height: 2,
+        color: Colors.deepPurpleAccent,
+      ),
+      onChanged: (String? newValue) {
+        setState(() {
+          dropdownValue = newValue!;
+        });
+      },
+      items: dropDownList.map<DropdownMenuItem<String>>((String value) {
+        return DropdownMenuItem<String>(
+          value: value,
+          child: Text(value),
+        );
+      }).toList(),
     );
   }
 }
